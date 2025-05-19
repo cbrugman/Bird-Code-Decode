@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table to JSON Converter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        textarea, pre {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        button {
+            background-color: #4F46E5;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #4338CA;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .error {
+            color: #DC2626;
+            font-weight: 500;
+        }
+        .copy-btn {
+            background-color: transparent;
+            color: #4F46E5;
+            font-size: 14px;
+            padding: 4px 8px;
+        }
+        .copy-btn:hover {
+            background-color: #EEF2FF;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function TableToJSONConverter() {
+            const [inputData, setInputData] = useState('');
+            const [outputData, setOutputData] = useState('');
+            const [jsonIndent, setJsonIndent] = useState(2);
+            const [error, setError] = useState('');
+
+            const convertToJSON = () => {
+                try {
+                    setError('');
+                    if (!inputData.trim()) {
+                        setOutputData('');
+                        return;
+                    }
+
+                    // Split the input by spaces
+                    const words = inputData.split(/\s+/);
+                    const result = {};
+                    
+                    // Process words in groups of 2 (code and name)
+                    for (let i = 0; i < words.length; i += 2) {
+                        if (i + 1 < words.length) {
+                            const code = words[i];
+                            
+                            // Check if the next item is likely a new code (typically codes are 4 characters or fewer)
+                            if (words[i + 1].length <= 4 && words[i + 1].toUpperCase() === words[i + 1]) {
+                                // This is likely a new code, not a name
+                                result[code] = '';
+                                i -= 1; // Adjust i to process this new code in the next iteration
+                            } else {
+                                // Find all words that belong to this name (until we hit another code or the end)
+                                let name = words[i + 1];
+                                let j = i + 2;
+                                while (j < words.length && (words[j].length > 4 || words[j].toUpperCase() !== words[j] || words[j].includes('†'))) {
+                                    name += ' ' + words[j];
+                                    j++;
+                                }
+                                
+                                // Clean the name (remove special characters like †)
+                                name = name.replace(/†/g, '').trim();
+                                
+                                result[code] = name;
+                                i = j - 2; // Adjust i to account for the words we've processed
+                            }
+                        } else {
+                            // Last single code without a name
+                            result[words[i]] = '';
+                        }
+                    }
+
+                    // Format the output as JSON
+                    setOutputData(JSON.stringify(result, null, jsonIndent));
+                } catch (err) {
+                    setError('Error processing data: ' + err.message);
+                }
+            };
+
+            const copyToClipboard = () => {
+                navigator.clipboard.writeText(outputData)
+                    .then(() => {
+                        alert('Copied to clipboard!');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            };
+
+            return (
+                <div className="container">
+                    <h1>Table to JSON Converter</h1>
+                    <p>Paste your table data below (format: CODE Name CODE Name)</p>
+                    
+                    <div>
+                        <label>Input Data:</label>
+                        <textarea 
+                            value={inputData}
+                            onChange={(e) => setInputData(e.target.value)}
+                            placeholder="HOWR House Wren BRNG Barnacle Goose..."
+                        />
+                    </div>
+                    
+                    <div className="controls">
+                        <button onClick={convertToJSON}>
+                            Convert to JSON
+                        </button>
+                        
+                        <div className="controls">
+                            <label>Indent:</label>
+                            <select 
+                                value={jsonIndent} 
+                                onChange={(e) => setJsonIndent(Number(e.target.value))}
+                            >
+                                <option value="0">None</option>
+                                <option value="2">2 spaces</option>
+                                <option value="4">4 spaces</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    {error && <p className="error">{error}</p>}
+                    
+                    <div>
+                        <div className="header">
+                            <label>Output JSON:</label>
+                            {outputData && (
+                                <button 
+                                    className="copy-btn"
+                                    onClick={copyToClipboard}
+                                >
+                                    Copy to clipboard
+                                </button>
+                            )}
+                        </div>
+                        <pre>
+                            {outputData || '// JSON output will appear here'}
+                        </pre>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<TableToJSONConverter />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Virtual Environment
+venv/**
+.venv/**
+ENV/**
+myenv/**
+myenv_old/**
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local configuration
+.env
+*.log
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Build outputs
+/archive
+
+# Personal configuration
+app_config.json
+ToDo List.txt
+hotkey_config.json
