@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 from tkinter import messagebox, simpledialog
 from bird_code_manager import BirdCodeManager
 
+
 # ------- CONFIGURATION -------
 # Auto-close time in milliseconds
 POPUP_DURATION = 3000  
