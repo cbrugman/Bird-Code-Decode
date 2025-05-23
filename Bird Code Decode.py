@@ -11,6 +11,7 @@ from pynput import keyboard
 import pystray
 from PIL import Image, ImageDraw, ImageFont
 from tkinter import messagebox, simpledialog
+from bird_code_manager import BirdCodeManager
 
 # ------- CONFIGURATION -------
 # Auto-close time in milliseconds
@@ -46,13 +47,8 @@ def load_codes():
 def open_codes_file():
     """Opens the bird code manager window instead of the raw file"""
     try:
-        # Import and use the BirdCodeManager class
-        from bird_code_manager import BirdCodeManager
-        
         # Create the manager window with current root window as master
-        # and reload_codes as callback to refresh data after editing
         BirdCodeManager(None, callback=lambda: reload_codes())
-        
         return True
     except Exception as e:
         show_popup(f"Error opening code manager:\n{str(e)}")

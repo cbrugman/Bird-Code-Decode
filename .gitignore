@@ -20,8 +20,12 @@ __pycache__/
 
 # Build outputs
 /archive
+/build
+/dist
+
 
 # Personal configuration
 app_config.json
 ToDo List.txt
 hotkey_config.json
+Bird Code Decode.spec
